@@ -1,0 +1,23 @@
+port-xvector-onnx
+Copyright 2026 Santiago Quiroz
+
+This product includes a derivative work of the pretrained model
+
+    speechbrain/spkrec-xvect-voxceleb
+    https://huggingface.co/speechbrain/spkrec-xvect-voxceleb
+
+released by the SpeechBrain team under the Apache License, Version 2.0.
+
+Modification: the TDNN speaker-embedding module of that model was traced and
+exported to ONNX (opset 17) with torch.onnx. No weights were retrained or
+altered. The feature frontend (filterbank + per-utterance normalisation) could
+not be traced and is therefore NOT part of the exported graph; its exact
+parameters are documented in README.md and reimplemented in reference/fbank.py.
+
+SpeechBrain
+Copyright SpeechBrain contributors
+https://github.com/speechbrain/speechbrain
+Licensed under the Apache License, Version 2.0.
+
+The upstream model was trained on VoxCeleb 1 and VoxCeleb 2, distributed by the
+Visual Geometry Group, University of Oxford, under its own terms.

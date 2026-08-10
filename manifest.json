@@ -1,0 +1,35 @@
+{
+  "name": "port-xvector-onnx",
+  "release": "models-v1.0",
+  "upstream": {
+    "model": "speechbrain/spkrec-xvect-voxceleb",
+    "url": "https://huggingface.co/speechbrain/spkrec-xvect-voxceleb",
+    "license": "Apache-2.0"
+  },
+  "license": "Apache-2.0",
+  "opset": 17,
+  "required_files": ["tdnn.onnx"],
+  "files": {
+    "tdnn.onnx": {
+      "sha256": "dfb4daeb9b0a9aa33b0993e35f22841b34718fef1cfdcded2c7ff75867ddc7f8",
+      "bytes": 16897902,
+      "inputs": {"feats": ["batch", "frames", 24]},
+      "outputs": {"embedding": ["batch", 1, 512]}
+    }
+  },
+  "frontend": {
+    "comment": "NOT part of the graph -- the caller must reproduce it exactly.",
+    "sample_rate": 16000,
+    "n_mels": 24,
+    "n_fft": 400,
+    "win_length": 400,
+    "hop_length": 160,
+    "window": "hamming",
+    "f_min": 0.0,
+    "f_max": 8000.0,
+    "mel_scale": "slaney",
+    "magnitude": "abs(rfft), not power",
+    "log_epsilon": 1e-10,
+    "normalization": "subtract per-utterance mean, do NOT divide by std"
+  }
+}

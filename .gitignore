@@ -1,0 +1,6 @@
+# The exported model ships as a release asset, not in git.
+*.onnx
+*.onnx.data
+__pycache__/
+.venv*/
+.tmp-xvect-src/
