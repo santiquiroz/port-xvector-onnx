@@ -39,19 +39,24 @@ SpeechT5's space (downstream conversion comes out as NaN, 52 s of audio for a
 
 `torch.onnx` cannot trace SpeechBrain's `compute_STFT` (the classic exporter
 breaks on the reshape; the dynamo path fails to convert the graph). Only the
-TDNN is exported, so **the caller must compute the filterbank itself**, with
-exactly these parameters — they were read off the loaded model, not from docs.
-Get them wrong and the embedding lands outside the space, silently.
+TDNN is exported, so **the caller must compute the filterbank itself**, exactly
+as `speechbrain.lobes.features.Fbank(n_mels=24)` does with every other default
+(speechbrain 1.0.2). Get it wrong and the embedding lands outside the space,
+silently.
 
 ```
 sample rate   16000 Hz, mono
 n_mels        24
 n_fft         400
-win_length    400 samples (25 ms), Hamming window
+win_length    400 samples (25 ms), periodic Hamming window
 hop_length    160 samples (10 ms)
-f_min / f_max 0 / 8000 Hz, Slaney-scale mel filterbank
-magnitude     |rfft|  -- magnitude, NOT power (speechbrain uses power=0.5)
-compression   log(mel + 1e-10)
+framing       centered: 200 zeros padded on each side, 1 + len // 160 frames
+spectrum      power, |rfft|^2
+f_min / f_max 0 / 8000 Hz, mel = 2595 * log10(1 + f / 700)
+filters       SpeechBrain triangles over linspace(0, 8000, 201): centered on
+              each inner mel point, half-width = distance to the previous one
+compression   10 * log10(max(mel, 1e-10)), then floored at (peak - 80 dB),
+              the peak taken over the whole utterance
 normalisation subtract the per-utterance mean; do NOT divide by the std
               (speechbrain: norm_type="sentence", std_norm=False)
 ```

@@ -24,12 +24,15 @@
     "n_fft": 400,
     "win_length": 400,
     "hop_length": 160,
-    "window": "hamming",
+    "window": "hamming, periodic",
+    "center": "constant zero padding of n_fft // 2 on each side",
     "f_min": 0.0,
     "f_max": 8000.0,
-    "mel_scale": "slaney",
-    "magnitude": "abs(rfft), not power",
-    "log_epsilon": 1e-10,
+    "mel_scale": "2595 * log10(1 + f / 700), speechbrain Filterbank triangles",
+    "spectrum": "power, abs(rfft) ** 2",
+    "compression": "10 * log10(max(mel, amin)), floored at utterance peak - top_db",
+    "amin": 1e-10,
+    "top_db": 80.0,
     "normalization": "subtract per-utterance mean, do NOT divide by std"
   }
 }
