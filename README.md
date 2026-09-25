@@ -73,7 +73,7 @@ exactly the above, and `verify.py` runs the whole thing end to end.
 import numpy as np, onnxruntime as ort
 from reference.fbank import compute_fbank, normalize_sentence   # or your own
 
-audio = ...  # float32, mono, 16 kHz, at least 400 samples
+audio = ...  # float32, mono, 16 kHz, at least 480 samples (4 frames)
 feats = normalize_sentence(compute_fbank(audio))[None, :, :]
 
 session = ort.InferenceSession("tdnn.onnx", providers=["CPUExecutionProvider"])
@@ -85,6 +85,11 @@ embedding /= np.linalg.norm(embedding)      # 512-d, unit norm
 shape (stereo `(N, 2)` from `soundfile.read`, for instance) raises `ValueError`
 instead of interleaving the channels: mix them down first, e.g.
 `audio.mean(axis=1)`. NaN or infinite samples raise `ValueError` too.
+
+`compute_fbank` accepts 400 samples (3 frames), as SpeechBrain's `Fbank` does,
+but the network needs 4 frames: its dilation-3 layer reflect-pads 3 frames on
+each side, so 3 frames fail in onnxruntime exactly as they fail in SpeechBrain
+(`Padding size should be less than the corresponding input dimension`).
 
 ## Reproducing the export
 
@@ -112,7 +117,17 @@ python verify.py tdnn.onnx
 
 It checks the sha256, the input/output signature, and that a real speech-shaped
 signal produces a finite, unit-normalisable 512-d embedding whose cosine
-similarity separates two different synthetic speakers.
+similarity separates two different synthetic speakers. The export was traced
+with a single `(1, 200, 24)` input, so it also exercises the dynamic axes:
+
+- a batch of 2 has the manifest's output shape `[batch, 1, 512]` and each row
+  matches the same input run alone (cosine > 0.9999);
+- 4 (the minimum, see Usage), 50 and 3000 frames give finite embeddings;
+- two runs of the same input agree (cosine > 0.9999) despite the pooling noise
+  SpeechBrain adds, which the graph keeps;
+- every `reference/golden/*.embedding.npy` (SpeechBrain's own embedding of the
+  parity signals) matches ours with cosine > 0.999. `--golden-dir` points it
+  elsewhere; with no golden embeddings this check is skipped.
 
 ### Parity against SpeechBrain
 
