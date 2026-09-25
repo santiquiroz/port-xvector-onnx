@@ -3,7 +3,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from reference.fbank import HOP_LENGTH, compute_fbank, normalize_sentence
+from reference.fbank import (
+    HOP_LENGTH,
+    WIN_LENGTH,
+    _mel_filterbank,
+    compute_fbank,
+    normalize_sentence,
+)
 from tests.speechbrain_golden import GOLDEN_PATH, golden_signal
 
 GOLDEN_TOLERANCE = 1e-3
@@ -76,3 +82,37 @@ def test_rejects_non_finite_samples(bad_value: float) -> None:
 
     with pytest.raises(ValueError, match="finite"):
         compute_fbank(audio)
+
+
+def test_rejects_audio_shorter_than_one_window() -> None:
+    with pytest.raises(ValueError, match="too short"):
+        compute_fbank(np.resize(voiced_half(), WIN_LENGTH - 1))
+
+
+def test_normalized_columns_have_zero_mean() -> None:
+    normalized = normalize_sentence(compute_fbank(golden_signal()))
+
+    np.testing.assert_allclose(normalized.mean(axis=0), 0.0, atol=1e-4)
+
+
+def test_normalization_keeps_the_spread() -> None:
+    feats = compute_fbank(golden_signal())
+
+    normalized = normalize_sentence(feats)
+
+    np.testing.assert_allclose(normalized.std(axis=0), feats.std(axis=0), rtol=1e-5)
+
+
+def test_every_mel_filter_covers_some_bin() -> None:
+    assert (_mel_filterbank().sum(axis=1) > 0).all()
+
+
+@pytest.mark.parametrize("gain", [0.01, 0.5, 10.0])
+def test_normalized_features_ignore_a_constant_gain(gain: float) -> None:
+    audio = voiced_half()
+
+    scaled = normalize_sentence(compute_fbank(gain * audio))
+
+    np.testing.assert_allclose(
+        scaled, normalize_sentence(compute_fbank(audio)), atol=1e-3
+    )

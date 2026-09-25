@@ -167,6 +167,20 @@ transformers 4.57.6, CPU): x-vector from a male reading → SpeechT5 VC → HiFi
 turned 3.30 s of female speech into 3.71 s of finite audio (peak 0.4988,
 RMS 0.1018, spectral distance 0.740 from the source), in 7.95 s.
 
+### Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+The suite needs neither torch nor the network. It covers `reference/fbank.py`
+(frame count and shape, the short/multichannel/non-finite guards, power
+decibels and the `top_db` floor, zero column mean without dividing by the std,
+invariance to a constant gain, no empty mel filter, SpeechBrain's golden
+features) and `verify.py` against fake sessions. The tests that need
+`tdnn.onnx` are skipped until the release asset sits next to this README.
+
 ## License and attribution
 
 The exported weights are a derivative of `speechbrain/spkrec-xvect-voxceleb`,
