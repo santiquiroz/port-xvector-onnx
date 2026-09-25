@@ -44,3 +44,35 @@ def test_silence_is_clipped_to_top_db_below_the_peak() -> None:
     feats = compute_fbank(golden_signal())
 
     assert feats.min() == pytest.approx(feats.max() - SPEECHBRAIN_TOP_DB, abs=1e-4)
+
+
+@pytest.mark.parametrize("shape", [(32000, 2), (2, 32000), (4, 16000)])
+def test_rejects_multichannel_audio(shape: tuple[int, int]) -> None:
+    with pytest.raises(ValueError, match="mono"):
+        compute_fbank(np.zeros(shape, np.float32))
+
+
+def test_rejects_three_dimensional_audio() -> None:
+    with pytest.raises(ValueError, match="mono"):
+        compute_fbank(np.zeros((1, 16000, 1), np.float32))
+
+
+def test_column_vector_matches_flat_audio() -> None:
+    audio = voiced_half()
+
+    np.testing.assert_array_equal(compute_fbank(audio[:, None]), compute_fbank(audio))
+
+
+def test_row_vector_matches_flat_audio() -> None:
+    audio = voiced_half()
+
+    np.testing.assert_array_equal(compute_fbank(audio[None, :]), compute_fbank(audio))
+
+
+@pytest.mark.parametrize("bad_value", [np.nan, np.inf, -np.inf])
+def test_rejects_non_finite_samples(bad_value: float) -> None:
+    audio = voiced_half().copy()
+    audio[100] = bad_value
+
+    with pytest.raises(ValueError, match="finite"):
+        compute_fbank(audio)

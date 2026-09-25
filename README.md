@@ -81,6 +81,11 @@ embedding = session.run(["embedding"], {"feats": feats})[0].reshape(-1)
 embedding /= np.linalg.norm(embedding)      # 512-d, unit norm
 ```
 
+`compute_fbank` takes mono audio shaped `(N,)`, `(N, 1)` or `(1, N)`. Any other
+shape (stereo `(N, 2)` from `soundfile.read`, for instance) raises `ValueError`
+instead of interleaving the channels: mix them down first, e.g.
+`audio.mean(axis=1)`. NaN or infinite samples raise `ValueError` too.
+
 ## Reproducing the export
 
 `export_xvector_onnx.py` is the script that produced the released artifact. It

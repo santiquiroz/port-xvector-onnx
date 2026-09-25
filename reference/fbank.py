@@ -75,10 +75,26 @@ def _to_decibels(mel: np.ndarray) -> np.ndarray:
     return np.maximum(decibels, decibels.max() - TOP_DB)
 
 
+def _as_mono(audio: np.ndarray) -> np.ndarray:
+    if audio.ndim == 1:
+        return audio
+    if audio.ndim == 2 and 1 in audio.shape:
+        return audio.reshape(-1)
+    raise ValueError(
+        f"Expected mono audio shaped (N,), (N, 1) or (1, N), got {audio.shape}. "
+        "Mix the channels down first, e.g. audio.mean(axis=1)."
+    )
+
+
+def _require_finite(audio: np.ndarray) -> None:
+    if not np.isfinite(audio).all():
+        raise ValueError("Audio contains NaN or infinite samples.")
+
+
 def compute_fbank(audio: np.ndarray) -> np.ndarray:
     """Log-mel of the signal, shaped (frames, n_mels) as the TDNN expects."""
-    if audio.ndim != 1:
-        audio = audio.reshape(-1)
+    audio = _as_mono(audio)
+    _require_finite(audio)
     if len(audio) < WIN_LENGTH:
         raise ValueError(
             f"Recording too short: at least {WIN_LENGTH / SAMPLE_RATE:.2f} s needed."
