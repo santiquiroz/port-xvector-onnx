@@ -109,6 +109,39 @@ It checks the sha256, the input/output signature, and that a real speech-shaped
 signal produces a finite, unit-normalisable 512-d embedding whose cosine
 similarity separates two different synthetic speakers.
 
+### Parity against SpeechBrain
+
+`parity/check_frontend_parity.py` runs in the export environment and measures
+`reference/fbank.py` + `tdnn.onnx` against SpeechBrain itself: features against
+the classifier's own `compute_features` + `mean_var_norm`, and the embedding
+against `EncoderClassifier.encode_batch`, on a synthetic voice and seeded noise
+of 0.5, 3 and 10 s. It exits non-zero unless every signal has the same frame
+count, a feature difference below `1e-3` and a cosine above `0.999`, and it
+rewrites `reference/golden/` (SpeechBrain's outputs plus `meta.json` with the
+speechbrain version and model revision) so `pytest` can check the same thing
+without torch:
+
+```bash
+.venv-xvect/Scripts/python parity/check_frontend_parity.py tdnn.onnx
+python -m pytest -q
+```
+
+**Passes** (2026-09-25, speechbrain 1.0.2, torch 2.5.1 CPU, model revision
+`56895a2`):
+
+```
+signal      frames ours/sb   max |diff| std ratio      cosine
+voice_0.5s        51/51     8.58e-05    1.0000   1.0000001  ok
+voice_3s        301/301     7.25e-05    1.0000   1.0000001  ok
+voice_10s     1001/1001     9.54e-05    1.0000   0.9999999  ok
+noise_0.5s        51/51     2.72e-05    1.0000   1.0000000  ok
+noise_3s        301/301     2.86e-05    1.0000   1.0000001  ok
+noise_10s     1001/1001     3.15e-05    1.0000   1.0000001  ok
+```
+
+The frontend shipped with `models-v1.0` fails it: 3 frames short, a std ratio
+of about 0.11 and a cosine of only 0.90–0.93.
+
 Verified end to end on 2026-08-10 (Windows 11, onnxruntime 1.24.4,
 transformers 4.57.6, CPU): x-vector from a male reading → SpeechT5 VC → HiFi-GAN
 turned 3.30 s of female speech into 3.71 s of finite audio (peak 0.4988,

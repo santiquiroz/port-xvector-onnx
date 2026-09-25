@@ -1,0 +1,19 @@
+{
+  "generator": "parity/check_frontend_parity.py",
+  "model": {
+    "source": "speechbrain/spkrec-xvect-voxceleb",
+    "revision": "56895a2df401be4150a159f3a1c653f00051d477"
+  },
+  "speechbrain": "1.0.2",
+  "torch": "2.5.1+cpu",
+  "features": "classifier.mods.compute_features + mean_var_norm, (frames, 24)",
+  "embedding": "classifier.encode_batch, raw (1, 1, 512)",
+  "signals": [
+    "voice_0.5s",
+    "voice_3s",
+    "voice_10s",
+    "noise_0.5s",
+    "noise_3s",
+    "noise_10s"
+  ]
+}
