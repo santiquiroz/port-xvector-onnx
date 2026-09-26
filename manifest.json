@@ -1,6 +1,6 @@
 {
   "name": "port-xvector-onnx",
-  "release": "models-v1.0",
+  "release": "models-v1.1",
   "upstream": {
     "model": "speechbrain/spkrec-xvect-voxceleb",
     "url": "https://huggingface.co/speechbrain/spkrec-xvect-voxceleb",

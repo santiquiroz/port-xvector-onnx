@@ -5,7 +5,7 @@ ONNX export of the **SpeechBrain x-vector speaker encoder**
 so you can extract speaker embeddings with plain `onnxruntime` — no `torch`, no
 `speechbrain`, no ~2 GB of dependencies.
 
-**Release:** [`models-v1.0`](https://github.com/santiquiroz/port-xvector-onnx/releases/tag/models-v1.0) → `tdnn.onnx` (16.1 MB)
+**Release:** [`models-v1.1`](https://github.com/santiquiroz/port-xvector-onnx/releases/tag/models-v1.1) → `tdnn.onnx` (16.1 MB, the same graph as `models-v1.0`; the release fixes the documented frontend)
 
 | | |
 |---|---|
